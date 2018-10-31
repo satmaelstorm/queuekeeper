@@ -4,10 +4,12 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
-	"log"
+	_ "log"
 	"net/http"
 
-	"github.com/bmizerany/pat"
+	"queuekeeper/qs"
+
+	_ "github.com/bmizerany/pat"
 )
 
 func extractBody(req *http.Request) string {
@@ -27,13 +29,23 @@ func putToQueueHandler(w http.ResponseWriter, req *http.Request) {
 }
 
 func main() {
-	m := pat.New()
-	m.Get("/:queue", http.HandlerFunc(getFromQueueHandler))
-	m.Post("/:queue", http.HandlerFunc(putToQueueHandler))
+	//	m := pat.New()
+	//	m.Get("/:queue", http.HandlerFunc(getFromQueueHandler))
+	//	m.Post("/:queue", http.HandlerFunc(putToQueueHandler))
 
-	http.Handle("/", m)
-	err := http.ListenAndServe(":12345", nil)
-	if err != nil {
-		log.Fatal("ListenAndServe: ", err)
-	}
+	//	http.Handle("/", m)
+	//	err := http.ListenAndServe(":12345", nil)
+	//	if err != nil {
+	//		log.Fatal("ListenAndServe: ", err)
+	//	}
+	q := qs.NewQueue()
+	q.Put("1")
+	q.Put("2")
+	q.Put("3")
+	v, _ := q.Get()
+	fmt.Printf("%s\n", v)
+	v, _ = q.Get()
+	fmt.Printf("%s\n", v)
+	v, _ = q.Get()
+	fmt.Printf("%s\n", v)
 }
