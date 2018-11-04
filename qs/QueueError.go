@@ -1,7 +1,8 @@
 package qs
 
 const (
-	ErrQueueEmpty = 1
+	ErrQueueEmpty        = 1
+	ErrNothingToDelivery = 2
 )
 
 type QueueError struct {

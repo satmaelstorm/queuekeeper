@@ -1,24 +1,30 @@
 package qs
 
-type IQueueItem interface {
-	Next() IQueueItem
-	String() string
-}
+import "time"
 
 type QueueItem struct {
-	next    *QueueItem
-	message string
+	next       *QueueItem
+	message    string
+	lastAccess int64
 }
 
-type PriorityQueueItem struct {
-	QueueItem
-	weight int
+func getTimeForLastAccess() int64 {
+	return time.Now().Unix()
+}
+
+func NewQueueItem(msg string) *QueueItem {
+	qi := &QueueItem{message: msg, next: nil, lastAccess: getTimeForLastAccess()}
+	return qi
 }
 
 func (this QueueItem) String() string {
 	return this.message
 }
 
-func (this QueueItem) Next() IQueueItem {
+func (this QueueItem) Next() *QueueItem {
 	return this.next
+}
+
+func (this QueueItem) LastAccess() int64 {
+	return this.lastAccess
 }

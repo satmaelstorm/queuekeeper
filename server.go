@@ -38,10 +38,13 @@ func main() {
 	//	if err != nil {
 	//		log.Fatal("ListenAndServe: ", err)
 	//	}
-	q := qs.NewQueue()
+	q := qs.NewDedupQueue(qs.NewQueueFlags())
+	q.Put("3")
+	q.Put("1")
 	q.Put("1")
 	q.Put("2")
-	q.Put("3")
+	q.Put("2")
+	q.Put("1")
 	v, _ := q.Get()
 	fmt.Printf("%s\n", v)
 	v, _ = q.Get()
