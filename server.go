@@ -6,10 +6,13 @@ import (
 	"io/ioutil"
 	_ "log"
 	"net/http"
+	_ "os"
+	_ "os/signal"
 
 	"queuekeeper/qs"
 
-	_ "github.com/bmizerany/pat"
+	_ "github.com/braintree/manners"
+	"github.com/julienschmidt/httprouter"
 )
 
 func extractBody(req *http.Request) string {
@@ -18,23 +21,28 @@ func extractBody(req *http.Request) string {
 
 }
 
-func getFromQueueHandler(w http.ResponseWriter, req *http.Request) {
-	io.WriteString(w, "hello, "+req.URL.Query().Get(":queue")+"!\n")
+func getFromQueueHandler(w http.ResponseWriter, req *http.Request, ps httprouter.Params) {
+	io.WriteString(w, "hello, "+ps.ByName("queue")+"!\n")
 }
 
-func putToQueueHandler(w http.ResponseWriter, req *http.Request) {
-	io.WriteString(w, "hello, "+req.URL.Query().Get(":queue")+"!\n")
+func putToQueueHandler(w http.ResponseWriter, req *http.Request, ps httprouter.Params) {
+	io.WriteString(w, "hello, "+ps.ByName("queue")+"!\n")
 	fmt.Fprintf(w, "%v", extractBody(req))
 	req.Body.Close()
 }
 
 func main() {
-	//	m := pat.New()
-	//	m.Get("/:queue", http.HandlerFunc(getFromQueueHandler))
-	//	m.Post("/:queue", http.HandlerFunc(putToQueueHandler))
+	//	signalChannel := make(chan os.Signal)
+	//	signal.Notify(signalChannel, os.Interrupt, os.Kill)
+	//	go func(ch <-chan os.Signal) {
+	//		<-ch
+	//		manners.Close()
+	//	}(signalChannel)
 
-	//	http.Handle("/", m)
-	//	err := http.ListenAndServe(":12345", nil)
+	//	router := httprouter.New()
+	//	router.GET("/:queue", getFromQueueHandler)
+	//	router.POST("/:queue", putToQueueHandler)
+	//	err := manners.ListenAndServe(":12345", router)
 	//	if err != nil {
 	//		log.Fatal("ListenAndServe: ", err)
 	//	}
@@ -51,4 +59,5 @@ func main() {
 	fmt.Printf("%s\n", v)
 	v, _ = q.Get()
 	fmt.Printf("%s\n", v)
+	fmt.Printf("%v\n", readGlobalConfig())
 }
