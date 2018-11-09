@@ -8,12 +8,15 @@ import (
 	"net/http"
 	_ "os"
 	_ "os/signal"
+	"runtime"
 
-	_ "queuekeeper/qs"
+	"queuekeeper/qs"
 
 	_ "github.com/braintree/manners"
 	"github.com/julienschmidt/httprouter"
 )
+
+var qm *qs.QueueManager
 
 func extractBody(req *http.Request) string {
 	bodyA, _ := ioutil.ReadAll(req.Body)
@@ -46,8 +49,10 @@ func main() {
 	//	if err != nil {
 	//		log.Fatal("ListenAndServe: ", err)
 	//	}
+	qm := qs.NewQueueManager()
 	conf := readGlobalConfig()
-	qm := readQueuesConfigs(conf)
+	qm = readQueuesConfigs(qm, conf)
+	runtime.GOMAXPROCS(conf.maxWorkers)
 
 	q1, _ := qm.GetQueue("test")
 	q2, _ := qm.GetQueue("test")

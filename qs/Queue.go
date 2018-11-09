@@ -1,5 +1,7 @@
 package qs
 
+import "sync"
+
 type ICommonQueue interface {
 	Put(msg string) (*QueueItem, error)
 	Get() (*QueueItem, error)
@@ -10,6 +12,7 @@ type Queue struct {
 	tail  *QueueItem
 	cnt   int
 	flags QueueFlags
+	mu    sync.Mutex
 }
 
 func NewQueue(fl QueueFlags) *Queue {
@@ -20,6 +23,21 @@ func NewQueue(fl QueueFlags) *Queue {
  * Put message to queue
  */
 func (this *Queue) Put(msg string) (*QueueItem, error) {
+	this.mu.Lock()
+	defer this.mu.Unlock()
+	return this.put(msg)
+}
+
+/**
+ * Get message from queue
+ */
+func (this *Queue) Get() (*QueueItem, error) {
+	this.mu.Lock()
+	defer this.mu.Unlock()
+	return this.get()
+}
+
+func (this *Queue) put(msg string) (*QueueItem, error) {
 	qi := NewQueueItem(msg)
 	if nil == this.head {
 		this.head = qi
@@ -36,10 +54,7 @@ func (this *Queue) Put(msg string) (*QueueItem, error) {
 	return qi, nil
 }
 
-/**
- * Get message from queue
- */
-func (this *Queue) Get() (*QueueItem, error) {
+func (this *Queue) get() (*QueueItem, error) {
 	if nil == this.head {
 		return nil, NewError("head is nil", ErrQueueEmpty)
 	}

@@ -48,8 +48,7 @@ func readGlobalConfig() configuartion {
 	return conf
 }
 
-func readQueuesConfigs(conf configuartion) *qs.QueueManager {
-	qm := qs.NewQueueManager()
+func readQueuesConfigs(qm *qs.QueueManager, conf configuartion) *qs.QueueManager {
 	files, err := ioutil.ReadDir(conf.queuePath)
 	if err != nil {
 		log.Fatal(err)
@@ -83,6 +82,14 @@ func processOneQueueConfig(fn string, conf *yaml.File, qm *qs.QueueManager) *qs.
 	if nil == err {
 		name = n
 	}
+
+	_, err = qm.GetQueue(name)
+
+	if nil == err {
+		//queue already exists
+		return qm
+	}
+
 	flags := qs.NewQueueFlags()
 
 	delayDelivery, err := conf.GetInt("delay_delivery")
@@ -92,7 +99,7 @@ func processOneQueueConfig(fn string, conf *yaml.File, qm *qs.QueueManager) *qs.
 
 	processFlag(conf, "deduplication", flags.SetDeduplicated)
 
-	_ = qm.CreateQueue(name, flags)
+	qm.CreateQueue(name, flags)
 	return qm
 }
 
