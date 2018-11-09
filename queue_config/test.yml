@@ -1,0 +1,4 @@
+name: test
+flags:
+  deduplication: true
+  delay_delivery: 0

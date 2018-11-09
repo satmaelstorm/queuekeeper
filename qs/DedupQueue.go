@@ -7,7 +7,7 @@ type DedupQueue struct {
 
 func NewDedupQueue(fl QueueFlags) *DedupQueue {
 	if !fl.isDeduplicated() {
-		fl.setDeduplicated(true)
+		fl.SetDeduplicated(true)
 	}
 	return &DedupQueue{
 		Queue: Queue{head: nil, tail: nil, cnt: 0, flags: fl},

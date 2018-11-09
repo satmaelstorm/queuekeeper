@@ -9,7 +9,7 @@ import (
 	_ "os"
 	_ "os/signal"
 
-	"queuekeeper/qs"
+	_ "queuekeeper/qs"
 
 	_ "github.com/braintree/manners"
 	"github.com/julienschmidt/httprouter"
@@ -46,18 +46,21 @@ func main() {
 	//	if err != nil {
 	//		log.Fatal("ListenAndServe: ", err)
 	//	}
-	q := qs.NewDedupQueue(qs.NewQueueFlags())
-	q.Put("3")
-	q.Put("1")
-	q.Put("1")
-	q.Put("2")
-	q.Put("2")
-	q.Put("1")
-	v, _ := q.Get()
-	fmt.Printf("%s\n", v)
-	v, _ = q.Get()
-	fmt.Printf("%s\n", v)
-	v, _ = q.Get()
-	fmt.Printf("%s\n", v)
-	fmt.Printf("%v\n", readGlobalConfig())
+	conf := readGlobalConfig()
+	qm := readQueuesConfigs(conf)
+
+	q1, _ := qm.GetQueue("test")
+	q2, _ := qm.GetQueue("test")
+
+	q1.Put("test1")
+	q1.Put("test1")
+	q1.Put("test2")
+
+	val, _ := q2.Get()
+	fmt.Printf("%s\n", val)
+	val, _ = q2.Get()
+	fmt.Printf("%s\n", val)
+	q2.Put("test3")
+	val, _ = q2.Get()
+	fmt.Printf("%s\n", val)
 }

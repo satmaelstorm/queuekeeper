@@ -11,6 +11,8 @@ type QueueFlags struct {
 	stack           bool
 }
 
+type QueueFlagsSetter func(bool) *QueueFlags
+
 /**
  * Getters
  */
@@ -46,27 +48,27 @@ func (this *QueueFlags) isStack() bool {
 /**
  * Setters
  */
-func (this *QueueFlags) setDurable(val bool) *QueueFlags {
+func (this *QueueFlags) SetDurable(val bool) *QueueFlags {
 	this.durable = val
 	return this
 }
 
-func (this *QueueFlags) setDeduplicated(val bool) *QueueFlags {
+func (this *QueueFlags) SetDeduplicated(val bool) *QueueFlags {
 	this.deduplicated = val
 	return this
 }
 
-func (this *QueueFlags) setDelayedDelivery(val int) *QueueFlags {
+func (this *QueueFlags) SetDelayedDelivery(val int) *QueueFlags {
 	this.delayedDelivery = val
 	return this
 }
 
-func (this *QueueFlags) setWithPriority(val bool) *QueueFlags {
+func (this *QueueFlags) SetWithPriority(val bool) *QueueFlags {
 	this.withPriority = val
 	return this
 }
 
-func (this *QueueFlags) setStack(val bool) *QueueFlags {
+func (this *QueueFlags) SetStack(val bool) *QueueFlags {
 	this.stack = val
 	return this
 }

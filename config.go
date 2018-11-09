@@ -2,7 +2,11 @@ package main
 
 import (
 	"fmt"
+	"io/ioutil"
+	"log"
 	"os"
+	"queuekeeper/qs"
+	"strings"
 
 	"github.com/kylelemons/go-gypsy/yaml"
 )
@@ -42,4 +46,60 @@ func readGlobalConfig() configuartion {
 		}
 	}
 	return conf
+}
+
+func readQueuesConfigs(conf configuartion) *qs.QueueManager {
+	qm := qs.NewQueueManager()
+	files, err := ioutil.ReadDir(conf.queuePath)
+	if err != nil {
+		log.Fatal(err)
+	}
+	var fn string
+	for _, file := range files {
+		fn = file.Name()
+		if strings.HasSuffix(fn, ".yml") || strings.HasSuffix(fn, ".yaml") {
+			c, err := yaml.ReadFile(conf.queuePath + fn)
+			if err != nil {
+				log.Println(err)
+				continue
+			}
+			processOneQueueConfig(fn, c, qm)
+
+		}
+	}
+	return qm
+}
+
+func processOneQueueConfig(fn string, conf *yaml.File, qm *qs.QueueManager) *qs.QueueManager {
+	var name string
+	if strings.HasSuffix(fn, ".yml") {
+		name = strings.Replace(fn, ".yml", "", -1)
+	} else if strings.HasSuffix(fn, ".yaml") {
+		name = strings.Replace(fn, ".yaml", "", -1)
+	} else {
+		name = fn
+	}
+	n, err := conf.Get("name")
+	if nil == err {
+		name = n
+	}
+	flags := qs.NewQueueFlags()
+
+	delayDelivery, err := conf.GetInt("delay_delivery")
+	if nil == err {
+		flags.SetDelayedDelivery(int(delayDelivery))
+	}
+
+	processFlag(conf, "deduplication", flags.SetDeduplicated)
+
+	_ = qm.CreateQueue(name, flags)
+	return qm
+}
+
+func processFlag(conf *yaml.File, name string, setter qs.QueueFlagsSetter) bool {
+	fl, err := conf.GetBool("flags." + name)
+	if nil == err {
+		setter(fl)
+	}
+	return fl
 }
