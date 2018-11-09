@@ -4,68 +4,109 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
-	_ "log"
+	"log"
 	"net/http"
-	_ "os"
-	_ "os/signal"
+	"os"
+	"os/signal"
 	"runtime"
+	"strconv"
 
 	"queuekeeper/qs"
 
-	_ "github.com/braintree/manners"
+	"github.com/braintree/manners"
 	"github.com/julienschmidt/httprouter"
 )
 
 var qm *qs.QueueManager
+var conf configuartion
 
-func extractBody(req *http.Request) string {
-	bodyA, _ := ioutil.ReadAll(req.Body)
-	return string(bodyA[:])
+func extractBody(req *http.Request) (string, error) {
+	bodyA, err := ioutil.ReadAll(req.Body)
+	if nil != err {
+		return "", err
+	}
+	return string(bodyA[:]), nil
 
 }
 
 func getFromQueueHandler(w http.ResponseWriter, req *http.Request, ps httprouter.Params) {
-	io.WriteString(w, "hello, "+ps.ByName("queue")+"!\n")
+	defer req.Body.Close()
+	queueName := ps.ByName("queue")
+	q, err := qm.GetQueue(queueName)
+	if err != nil {
+		io.WriteString(w, "Queue "+queueName+" not found")
+		http.NotFound(w, req)
+		return
+	}
+	msg, err := q.Get()
+	if err != nil {
+		http.Error(w, err.Error(), 400)
+		return
+	}
+	io.WriteString(w, msg.String())
 }
 
 func putToQueueHandler(w http.ResponseWriter, req *http.Request, ps httprouter.Params) {
-	io.WriteString(w, "hello, "+ps.ByName("queue")+"!\n")
-	fmt.Fprintf(w, "%v", extractBody(req))
-	req.Body.Close()
+	defer req.Body.Close()
+	queueName := ps.ByName("queue")
+	q, err := qm.GetQueue(queueName)
+	if err != nil {
+		io.WriteString(w, "Queue "+queueName+" not found")
+		http.NotFound(w, req)
+		return
+	}
+	body, err := extractBody(req)
+	if err != nil {
+		http.Error(w, err.Error(), 500)
+		return
+	}
+	msg, err := q.Put(body)
+	if err != nil {
+		http.Error(w, err.Error(), 500)
+	}
+	io.WriteString(w, msg.String())
+}
+
+func adminReloadQueueConfigHandler(w http.ResponseWriter, req *http.Request, ps httprouter.Params) {
+	defer req.Body.Close()
+	readQueuesConfigs(qm, conf)
 }
 
 func main() {
-	//	signalChannel := make(chan os.Signal)
-	//	signal.Notify(signalChannel, os.Interrupt, os.Kill)
-	//	go func(ch <-chan os.Signal) {
-	//		<-ch
-	//		manners.Close()
-	//	}(signalChannel)
-
-	//	router := httprouter.New()
-	//	router.GET("/:queue", getFromQueueHandler)
-	//	router.POST("/:queue", putToQueueHandler)
-	//	err := manners.ListenAndServe(":12345", router)
-	//	if err != nil {
-	//		log.Fatal("ListenAndServe: ", err)
-	//	}
-	qm := qs.NewQueueManager()
-	conf := readGlobalConfig()
+	qm = qs.NewQueueManager()
+	conf = readGlobalConfig()
+	fmt.Printf("Read configuration: %v\n", conf)
 	qm = readQueuesConfigs(qm, conf)
 	runtime.GOMAXPROCS(conf.maxWorkers)
 
-	q1, _ := qm.GetQueue("test")
-	q2, _ := qm.GetQueue("test")
+	signalChannel := make(chan os.Signal)
+	signal.Notify(signalChannel, os.Interrupt, os.Kill)
+	go func(ch <-chan os.Signal) {
+		<-ch
+		manners.Close()
+	}(signalChannel)
 
-	q1.Put("test1")
-	q1.Put("test1")
-	q1.Put("test2")
+	router := httprouter.New()
+	router.GET("/q/:queue", getFromQueueHandler)
+	router.POST("/q/:queue", putToQueueHandler)
+	router.GET("/admin/reload/queues", adminReloadQueueConfigHandler)
+	err := manners.ListenAndServe(":"+strconv.FormatInt(int64(conf.httpPort), 10), router)
+	if err != nil {
+		log.Fatal("ListenAndServe: ", err)
+	}
 
-	val, _ := q2.Get()
-	fmt.Printf("%s\n", val)
-	val, _ = q2.Get()
-	fmt.Printf("%s\n", val)
-	q2.Put("test3")
-	val, _ = q2.Get()
-	fmt.Printf("%s\n", val)
+	//	q1, _ := qm.GetQueue("test")
+	//	q2, _ := qm.GetQueue("test")
+
+	//	q1.Put("test1")
+	//	q1.Put("test1")
+	//	q1.Put("test2")
+
+	//	val, _ := q2.Get()
+	//	fmt.Printf("%s\n", val)
+	//	val, _ = q2.Get()
+	//	fmt.Printf("%s\n", val)
+	//	q2.Put("test3")
+	//	val, _ = q2.Get()
+	//	fmt.Printf("%s\n", val)
 }

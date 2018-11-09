@@ -15,6 +15,12 @@ func NewDedupQueue(fl QueueFlags) *DedupQueue {
 }
 
 func (this *DedupQueue) Put(msg string) (*QueueItem, error) {
+	this.mu.Lock()
+	defer this.mu.Unlock()
+	return this.put(msg)
+}
+
+func (this *DedupQueue) put(msg string) (*QueueItem, error) {
 	qi, ok := this.items[msg]
 	if ok {
 		qi.lastAccess = getTimeForLastAccess()
@@ -22,7 +28,7 @@ func (this *DedupQueue) Put(msg string) (*QueueItem, error) {
 		return qi, nil
 	}
 
-	qi, err := this.Queue.Put(msg)
+	qi, err := this.Queue.put(msg)
 
 	if err != nil {
 		return nil, err
