@@ -88,25 +88,10 @@ func main() {
 
 	router := httprouter.New()
 	router.GET("/q/:queue", getFromQueueHandler)
-	router.POST("/q/:queue", putToQueueHandler)
+	router.PUT("/q/:queue", putToQueueHandler)
 	router.GET("/admin/reload/queues", adminReloadQueueConfigHandler)
 	err := manners.ListenAndServe(":"+strconv.FormatInt(int64(conf.httpPort), 10), router)
 	if err != nil {
 		log.Fatal("ListenAndServe: ", err)
 	}
-
-	//	q1, _ := qm.GetQueue("test")
-	//	q2, _ := qm.GetQueue("test")
-
-	//	q1.Put("test1")
-	//	q1.Put("test1")
-	//	q1.Put("test2")
-
-	//	val, _ := q2.Get()
-	//	fmt.Printf("%s\n", val)
-	//	val, _ = q2.Get()
-	//	fmt.Printf("%s\n", val)
-	//	q2.Put("test3")
-	//	val, _ = q2.Get()
-	//	fmt.Printf("%s\n", val)
 }
