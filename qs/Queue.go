@@ -3,7 +3,7 @@ package qs
 import "sync"
 
 type ICommonQueue interface {
-	Put(msg string) (*QueueItem, error)
+	Put(qi *QueueItem) (*QueueItem, error)
 	Get() (*QueueItem, error)
 }
 
@@ -22,10 +22,10 @@ func NewQueue(fl QueueFlags) *Queue {
 /**
  * Put message to queue
  */
-func (this *Queue) Put(msg string) (*QueueItem, error) {
+func (this *Queue) Put(qi *QueueItem) (*QueueItem, error) {
 	this.mu.Lock()
 	defer this.mu.Unlock()
-	return this.put(msg)
+	return this.put(qi)
 }
 
 /**
@@ -37,8 +37,7 @@ func (this *Queue) Get() (*QueueItem, error) {
 	return this.get()
 }
 
-func (this *Queue) put(msg string) (*QueueItem, error) {
-	qi := NewQueueItem(msg)
+func (this *Queue) put(qi *QueueItem) (*QueueItem, error) {
 	if nil == this.head {
 		this.head = qi
 	}

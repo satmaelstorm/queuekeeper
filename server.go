@@ -65,12 +65,13 @@ func putToQueueHandler(w http.ResponseWriter, req *http.Request, ps httprouter.P
 	}
 	body, err := extractBody(req)
 	if err != nil {
-		http.Error(w, err.Error(), 500)
+		http.Error(w, err.Error(), 400)
 		return
 	}
-	msg, err := q.Put(body)
+	qi := qs.NewQueueItem(body, -1)
+	msg, err := q.Put(qi)
 	if err != nil {
-		http.Error(w, err.Error(), 500)
+		http.Error(w, err.Error(), 400)
 	}
 	io.WriteString(w, msg.String())
 }

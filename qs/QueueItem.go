@@ -13,8 +13,8 @@ func getTimeForLastAccess() int64 {
 	return time.Now().Unix()
 }
 
-func NewQueueItem(msg string) *QueueItem {
-	qi := &QueueItem{message: msg, next: nil, lastAccess: getTimeForLastAccess(), delay: -1}
+func NewQueueItem(msg string, d int64) *QueueItem {
+	qi := &QueueItem{message: msg, next: nil, lastAccess: getTimeForLastAccess(), delay: d}
 	return qi
 }
 
