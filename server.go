@@ -29,6 +29,14 @@ func extractBody(req *http.Request) (string, error) {
 
 }
 
+func extractBodyAsByteArray(req *http.Request) ([]byte, error) {
+	bodyA, err := ioutil.ReadAll(req.Body)
+	if nil != err {
+		return nil, err
+	}
+	return bodyA, nil
+}
+
 func getFromQueueHandler(w http.ResponseWriter, req *http.Request, ps httprouter.Params) {
 	defer req.Body.Close()
 	queueName := ps.ByName("queue")
