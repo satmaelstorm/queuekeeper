@@ -6,6 +6,7 @@ type QueueItem struct {
 	next       *QueueItem
 	message    string
 	lastAccess int64
+	delay      int64
 }
 
 func getTimeForLastAccess() int64 {
@@ -13,7 +14,7 @@ func getTimeForLastAccess() int64 {
 }
 
 func NewQueueItem(msg string) *QueueItem {
-	qi := &QueueItem{message: msg, next: nil, lastAccess: getTimeForLastAccess()}
+	qi := &QueueItem{message: msg, next: nil, lastAccess: getTimeForLastAccess(), delay: -1}
 	return qi
 }
 

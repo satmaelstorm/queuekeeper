@@ -75,8 +75,11 @@ func (this *Queue) get() (*QueueItem, error) {
 func findMessageCanDelivery(q *Queue) (*QueueItem, error) {
 	t := getTimeForLastAccess()
 	curItem := q.head
-
-	for (curItem.lastAccess + int64(q.flags.DelayedDelivery())) >= t {
+	delay := curItem.delay
+	if delay < 0 {
+		delay = int64(q.flags.DelayedDelivery())
+	}
+	for (curItem.lastAccess + delay) >= t {
 		if nil == curItem.next {
 			return nil, NewError("no messages for delivery", ErrNothingToDelivery)
 		}
