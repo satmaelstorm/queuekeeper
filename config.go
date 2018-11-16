@@ -6,10 +6,13 @@ import (
 	"log"
 	"os"
 	"queuekeeper/qs"
+	"strconv"
 	"strings"
 
 	"github.com/kylelemons/go-gypsy/yaml"
 )
+
+const ENV_PREFIX = "QUEUEKEEPER_"
 
 type configuartion struct {
 	queuePath  string
@@ -21,13 +24,21 @@ func (this configuartion) String() string {
 	return fmt.Sprintf("queuePath: %s, maxWorkers: %d, httpPort: %d", this.queuePath, this.maxWorkers, this.httpPort)
 }
 
+func readEnv(name string) string {
+	return os.Getenv(ENV_PREFIX + name)
+}
+
 func readGlobalConfig() configuartion {
-	path := os.Getenv("QUEUEKEEPER_CONFIG_PATH")
+	path := readEnv("CONFIG_PATH")
 	if "" == path {
 		path = "qk.config.yml"
 	}
 
 	conf := configuartion{queuePath: "./", maxWorkers: 5, httpPort: 8088}
+
+	if "ENV" == path {
+		return readGlobalConfigFromEnv(conf)
+	}
 
 	config, err := yaml.ReadFile(path)
 
@@ -41,6 +52,28 @@ func readGlobalConfig() configuartion {
 			conf.maxWorkers = int(mw)
 		}
 		hp, err := config.GetInt("http_port")
+		if nil == err {
+			conf.httpPort = int(hp)
+		}
+	}
+	return conf
+}
+
+func readGlobalConfigFromEnv(conf configuartion) configuartion {
+	qp := readEnv("QUEUE_CONFIG_PATH")
+	if "" != qp {
+		conf.queuePath = qp
+	}
+	mw := os.Getenv("GOMAXPROCS")
+	if "" != mw {
+		mw, err := strconv.ParseInt(mw, 10, 0)
+		if nil == err {
+			conf.maxWorkers = int(mw)
+		}
+	}
+	hp := readEnv("HTTP_PORT")
+	if "" != hp {
+		hp, err := strconv.ParseInt(mw, 10, 0)
 		if nil == err {
 			conf.httpPort = int(hp)
 		}
