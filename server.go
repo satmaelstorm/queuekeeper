@@ -68,7 +68,8 @@ func putToQueueHandler(w http.ResponseWriter, req *http.Request, ps httprouter.P
 		http.Error(w, err.Error(), 400)
 		return
 	}
-	qi := qs.NewQueueItem(body, -1)
+	preparedMessage := message{Msg: body, Delay: -1}
+	qi := makeQueueItem(preparedMessage)
 	msg, err := q.Put(qi)
 	if err != nil {
 		http.Error(w, err.Error(), 400)
@@ -95,10 +96,8 @@ func main() {
 		manners.Close()
 	}(signalChannel)
 
-	router := httprouter.New()
-	router.GET("/q/:queue", getFromQueueHandler)
-	router.PUT("/q/:queue", putToQueueHandler)
-	router.GET("/admin/reload/queues", adminReloadQueueConfigHandler)
+	router := route()
+
 	err := manners.ListenAndServe(":"+strconv.FormatInt(int64(conf.httpPort), 10), router)
 	if err != nil {
 		log.Fatal("ListenAndServe: ", err)
