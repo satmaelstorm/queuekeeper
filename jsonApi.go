@@ -42,7 +42,8 @@ func makeQueueItem(msg message) *qs.QueueItem {
 	return qi
 }
 
-func writeJson(w http.ResponseWriter, answer answerJson) {
+func jsonResponse(w http.ResponseWriter, answer answerJson, code int) {
+	w.WriteHeader(code)
 	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 	jsonBA, err := json.Marshal(answer)
 	if err != nil {
@@ -59,32 +60,29 @@ func postQueueHandler(w http.ResponseWriter, req *http.Request, ps httprouter.Pa
 
 	body, err := extractBodyAsByteArray(req)
 	if nil != err {
-		w.WriteHeader(400)
 		answer.Error = append(answer.Error, err.Error())
-		writeJson(w, answer)
+		jsonResponse(w, answer, 400)
 		return
 	}
 	in, err := resolveJson(body)
 	if nil != err {
-		w.WriteHeader(400)
 		answer.Error = append(answer.Error, err.Error())
-		writeJson(w, answer)
+		jsonResponse(w, answer, 400)
 		return
 	}
 	if "" == in.Action {
-		w.WriteHeader(400)
 		answer.Error = append(answer.Error, err.Error())
-		writeJson(w, answer)
+		jsonResponse(w, answer, 400)
 		return
 	}
 	queueName := ps.ByName("queue")
 	q, err := qm.GetQueue(queueName)
 	if err != nil {
-		w.WriteHeader(404)
 		answer.Error = append(answer.Error, "Queue "+queueName+" not found")
-		writeJson(w, answer)
+		jsonResponse(w, answer, 404)
 		return
 	}
+	code := 200
 	switch strings.ToLower(in.Action) {
 	case "get":
 		answer = getJson(q, in)
@@ -92,8 +90,9 @@ func postQueueHandler(w http.ResponseWriter, req *http.Request, ps httprouter.Pa
 		answer = putJson(q, in)
 	default:
 		answer.Error = append(answer.Error, fmt.Sprintf("Unknown method %s", in.Action))
+		code = 400
 	}
-	writeJson(w, answer)
+	jsonResponse(w, answer, code)
 }
 
 func putJson(q qs.ICommonQueue, in postJson) answerJson {

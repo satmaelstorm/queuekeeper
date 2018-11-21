@@ -5,6 +5,7 @@ import "sync"
 type ICommonQueue interface {
 	Put(qi *QueueItem) (*QueueItem, error)
 	Get() (*QueueItem, error)
+	Count() int
 }
 
 type Queue struct {
@@ -17,6 +18,10 @@ type Queue struct {
 
 func NewQueue(fl QueueFlags) *Queue {
 	return &Queue{head: nil, tail: nil, cnt: 0, flags: fl}
+}
+
+func (this *Queue) Count() int {
+	return this.cnt
 }
 
 /**

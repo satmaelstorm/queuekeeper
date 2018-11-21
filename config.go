@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"log"
+	"net/url"
 	"os"
 	"queuekeeper/qs"
 	"strconv"
@@ -14,14 +15,21 @@ import (
 
 const ENV_PREFIX = "QUEUEKEEPER_"
 
+type logConfiguration struct {
+	level        int
+	engine       string
+	parsedEngine url.URL
+}
+
 type configuartion struct {
 	queuePath  string
 	maxWorkers int
 	httpPort   int
+	logConf    logConfiguration
 }
 
 func (this configuartion) String() string {
-	return fmt.Sprintf("queuePath: %s, maxWorkers: %d, httpPort: %d", this.queuePath, this.maxWorkers, this.httpPort)
+	return fmt.Sprintf("queuePath: %s, maxWorkers: %d, httpPort: %d, log level: %d, log engine: %s", this.queuePath, this.maxWorkers, this.httpPort, this.logConf.level, this.logConf.engine)
 }
 
 func readEnv(name string) string {
@@ -43,41 +51,63 @@ func readGlobalConfig() configuartion {
 	config, err := yaml.ReadFile(path)
 
 	if nil == err {
-		qp, err := config.Get("queue_config_path")
-		if nil == err {
+		if qp, err := config.Get("queue_config_path"); nil == err {
 			conf.queuePath = qp
 		}
-		mw, err := config.GetInt("max_workers")
-		if nil == err {
+
+		if mw, err := config.GetInt("max_workers"); nil == err {
 			conf.maxWorkers = int(mw)
 		}
-		hp, err := config.GetInt("http_port")
-		if nil == err {
+
+		if hp, err := config.GetInt("http_port"); nil == err {
 			conf.httpPort = int(hp)
+		}
+		if logLevel, err := config.Get("log.level"); nil == err {
+			conf.logConf.level = parseLogLevel(logLevel)
+		} else {
+			conf.logConf.level = QK_DEFAULT_LOG_LEVEL
+		}
+
+		conf.logConf.engine = QK_DEFAULT_LOG_ENGINE
+		if logUri, err := config.Get("log.engine"); nil == err {
+			if u, err := url.Parse(logUri); nil == err {
+				conf.logConf.engine = logUri
+				conf.logConf.parsedEngine = *u
+			}
 		}
 	}
 	return conf
 }
 
 func readGlobalConfigFromEnv(conf configuartion) configuartion {
-	qp := readEnv("QUEUE_CONFIG_PATH")
-	if "" != qp {
+	if qp := readEnv("QUEUE_CONFIG_PATH"); "" != qp {
 		conf.queuePath = qp
 	}
-	mw := os.Getenv("GOMAXPROCS")
-	if "" != mw {
+
+	if mw := os.Getenv("GOMAXPROCS"); "" != mw {
 		mw, err := strconv.ParseInt(mw, 10, 0)
 		if nil == err {
 			conf.maxWorkers = int(mw)
 		}
 	}
-	hp := readEnv("HTTP_PORT")
-	if "" != hp {
-		hp, err := strconv.ParseInt(mw, 10, 0)
-		if nil == err {
+
+	if hp := readEnv("HTTP_PORT"); "" != hp {
+		if hp, err := strconv.ParseInt(hp, 10, 0); nil == err {
 			conf.httpPort = int(hp)
 		}
 	}
+
+	if logLevel := readEnv("LOG_LEVEL"); "" != logLevel {
+		conf.logConf.level = parseLogLevel(logLevel)
+	}
+
+	if logUri := readEnv("LOG_ENGINE"); "" != logUri {
+		if u, err := url.Parse(logUri); err == nil {
+			conf.logConf.engine = logUri
+			conf.logConf.parsedEngine = *u
+		}
+	}
+
 	return conf
 }
 
@@ -125,7 +155,7 @@ func processOneQueueConfig(fn string, conf *yaml.File, qm *qs.QueueManager) *qs.
 
 	flags := qs.NewQueueFlags()
 
-	delayDelivery, err := conf.GetInt("delay_delivery")
+	delayDelivery, err := conf.GetInt("flags.delay_delivery")
 	if nil == err {
 		flags.SetDelayedDelivery(int(delayDelivery))
 	}

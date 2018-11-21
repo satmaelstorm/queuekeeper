@@ -1,5 +1,10 @@
 package qs
 
+import (
+	"fmt"
+	"strings"
+)
+
 type QueueManager struct {
 	queues map[string]ICommonQueue
 }
@@ -23,4 +28,19 @@ func (this *QueueManager) GetQueue(name string) (ICommonQueue, error) {
 		return q, nil
 	}
 	return nil, NewError("No Queue "+name, ErrNoQueue)
+}
+
+func (this *QueueManager) String() string {
+	qStr := "Queues: "
+	var keys []string
+	for k := range this.queues {
+		q := this.queues[k]
+		item := k + fmt.Sprintf("(items: %d)", q.Count())
+		keys = append(keys, item)
+	}
+	if len(keys) < 1 {
+		return qStr + "NO QUEUES CONFIGURED"
+	}
+	return qStr + strings.Join(keys[:], "; ")
+
 }

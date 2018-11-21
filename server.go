@@ -4,12 +4,12 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
-	"log"
 	"net/http"
 	"os"
 	"os/signal"
 	"runtime"
 	"strconv"
+	"sync"
 
 	"queuekeeper/qs"
 
@@ -19,6 +19,8 @@ import (
 
 var qm *qs.QueueManager
 var conf configuartion
+var logger queueKeeperLogger
+var adminReloadQueueConfigMutex sync.Mutex
 
 func extractBody(req *http.Request) (string, error) {
 	bodyA, err := ioutil.ReadAll(req.Body)
@@ -79,13 +81,17 @@ func putToQueueHandler(w http.ResponseWriter, req *http.Request, ps httprouter.P
 
 func adminReloadQueueConfigHandler(w http.ResponseWriter, req *http.Request, ps httprouter.Params) {
 	defer req.Body.Close()
+	adminReloadQueueConfigMutex.Lock()
+	defer adminReloadQueueConfigMutex.Unlock()
 	readQueuesConfigs(qm, conf)
+	io.WriteString(w, qm.String())
 }
 
 func main() {
 	qm = qs.NewQueueManager()
 	conf = readGlobalConfig()
-	fmt.Printf("Read configuration: %v\n", conf)
+	logger = initLogger(conf.logConf)
+	logger.log(QK_LOG_LEVEL_INFO, fmt.Sprintf("Read configuration: %v", conf))
 	qm = readQueuesConfigs(qm, conf)
 	runtime.GOMAXPROCS(conf.maxWorkers)
 
@@ -100,6 +106,6 @@ func main() {
 
 	err := manners.ListenAndServe(":"+strconv.FormatInt(int64(conf.httpPort), 10), router)
 	if err != nil {
-		log.Fatal("ListenAndServe: ", err)
+		logger.log(QK_LOG_LEVEL_CRITICAL, "ListenAndServe: "+err.Error())
 	}
 }
