@@ -10,5 +10,6 @@ func route() *httprouter.Router {
 	router.PUT("/q/:queue", putToQueueHandler)
 	router.POST("/q/:queue", postQueueHandler)
 	router.GET("/admin/reload/queues", adminReloadQueueConfigHandler)
+	router.GET("/admin/health", healthRoute)
 	return router
 }

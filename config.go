@@ -26,10 +26,13 @@ type configuartion struct {
 	maxWorkers int
 	httpPort   int
 	logConf    logConfiguration
+	from       string
 }
 
 func (this configuartion) String() string {
-	return fmt.Sprintf("queuePath: %s, maxWorkers: %d, httpPort: %d, log level: %d, log engine: %s", this.queuePath, this.maxWorkers, this.httpPort, this.logConf.level, this.logConf.engine)
+	return fmt.Sprintf(
+		"queuePath: %s, maxWorkers: %d, httpPort: %d, log level: %d, log engine: %s, load from: %s",
+		this.queuePath, this.maxWorkers, this.httpPort, this.logConf.level, this.logConf.engine, this.from)
 }
 
 func readEnv(name string) string {
@@ -42,7 +45,7 @@ func readGlobalConfig() configuartion {
 		path = "qk.config.yml"
 	}
 
-	conf := configuartion{queuePath: "./", maxWorkers: 5, httpPort: 8088}
+	conf := configuartion{queuePath: "./", maxWorkers: 5, httpPort: 8088, from: "default"}
 
 	if "ENV" == path {
 		return readGlobalConfigFromEnv(conf)
@@ -51,6 +54,7 @@ func readGlobalConfig() configuartion {
 	config, err := yaml.ReadFile(path)
 
 	if nil == err {
+		conf.from = "yaml file "+path
 		if qp, err := config.Get("queue_config_path"); nil == err {
 			conf.queuePath = qp
 		}
@@ -107,7 +111,7 @@ func readGlobalConfigFromEnv(conf configuartion) configuartion {
 			conf.logConf.parsedEngine = *u
 		}
 	}
-
+	conf.from = "environment"
 	return conf
 }
 

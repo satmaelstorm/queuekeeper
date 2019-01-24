@@ -25,6 +25,7 @@ var adminReloadQueueConfigMutex sync.Mutex
 func extractBody(req *http.Request) (string, error) {
 	bodyA, err := ioutil.ReadAll(req.Body)
 	if nil != err {
+		logger.log(QK_LOG_LEVEL_ERROR, "Extract body error: "+err.Error())
 		return "", err
 	}
 	return string(bodyA[:]), nil
@@ -34,6 +35,7 @@ func extractBody(req *http.Request) (string, error) {
 func extractBodyAsByteArray(req *http.Request) ([]byte, error) {
 	bodyA, err := ioutil.ReadAll(req.Body)
 	if nil != err {
+		logger.log(QK_LOG_LEVEL_ERROR, "Extract body as byte array error: "+err.Error())
 		return nil, err
 	}
 	return bodyA, nil
@@ -45,14 +47,17 @@ func getFromQueueHandler(w http.ResponseWriter, req *http.Request, ps httprouter
 	q, err := qm.GetQueue(queueName)
 	if err != nil {
 		io.WriteString(w, "Queue "+queueName+" not found")
+		logger.log(QK_LOG_LEVEL_WARNING, "Queue "+queueName+" not found")
 		http.NotFound(w, req)
 		return
 	}
 	msg, err := q.Get()
 	if err != nil {
 		http.Error(w, err.Error(), 400)
+		logger.log(QK_LOG_LEVEL_ERROR, "Get from queue error: "+err.Error())
 		return
 	}
+	logger.log(QK_LOG_LEVEL_TRACE, "Get from queue: "+msg.String())
 	io.WriteString(w, msg.String())
 }
 
@@ -62,6 +67,7 @@ func putToQueueHandler(w http.ResponseWriter, req *http.Request, ps httprouter.P
 	q, err := qm.GetQueue(queueName)
 	if err != nil {
 		io.WriteString(w, "Queue "+queueName+" not found")
+		logger.log(QK_LOG_LEVEL_WARNING, "Queue "+queueName+" not found")
 		http.NotFound(w, req)
 		return
 	}
@@ -75,7 +81,9 @@ func putToQueueHandler(w http.ResponseWriter, req *http.Request, ps httprouter.P
 	msg, err := q.Put(qi)
 	if err != nil {
 		http.Error(w, err.Error(), 400)
+		logger.log(QK_LOG_LEVEL_ERROR, "Put in queue error: "+err.Error())
 	}
+	logger.log(QK_LOG_LEVEL_TRACE, "Put in queue: "+msg.String())
 	io.WriteString(w, msg.String())
 }
 
@@ -83,8 +91,15 @@ func adminReloadQueueConfigHandler(w http.ResponseWriter, req *http.Request, ps 
 	defer req.Body.Close()
 	adminReloadQueueConfigMutex.Lock()
 	defer adminReloadQueueConfigMutex.Unlock()
+	logger.log(QK_LOG_LEVEL_INFO, "Reload queue config")
 	readQueuesConfigs(qm, conf)
 	io.WriteString(w, qm.String())
+}
+
+func healthRoute(w http.ResponseWriter, req *http.Request, ps httprouter.Params) {
+	defer req.Body.Close()
+	logger.log(QK_LOG_LEVEL_INFO, "Read health info")
+	io.WriteString(w, health())
 }
 
 func main() {

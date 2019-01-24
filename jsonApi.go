@@ -48,6 +48,7 @@ func jsonResponse(w http.ResponseWriter, answer answerJson, code int) {
 	jsonBA, err := json.Marshal(answer)
 	if err != nil {
 		http.Error(w, err.Error(), 400)
+		logger.log(QK_LOG_LEVEL_ERROR, "json error: "+err.Error())
 		return
 	}
 	jsonStr := string(jsonBA[:])
@@ -68,10 +69,12 @@ func postQueueHandler(w http.ResponseWriter, req *http.Request, ps httprouter.Pa
 	if nil != err {
 		answer.Error = append(answer.Error, err.Error())
 		jsonResponse(w, answer, 400)
+		logger.log(QK_LOG_LEVEL_WARNING, "json error: "+err.Error())
 		return
 	}
 	if "" == in.Action {
 		answer.Error = append(answer.Error, err.Error())
+		logger.log(QK_LOG_LEVEL_WARNING, "json error: "+err.Error())
 		jsonResponse(w, answer, 400)
 		return
 	}
@@ -80,6 +83,7 @@ func postQueueHandler(w http.ResponseWriter, req *http.Request, ps httprouter.Pa
 	if err != nil {
 		answer.Error = append(answer.Error, "Queue "+queueName+" not found")
 		jsonResponse(w, answer, 404)
+		logger.log(QK_LOG_LEVEL_WARNING, "Queue "+queueName+" not found")
 		return
 	}
 	code := 200
@@ -90,6 +94,7 @@ func postQueueHandler(w http.ResponseWriter, req *http.Request, ps httprouter.Pa
 		answer = putJson(q, in)
 	default:
 		answer.Error = append(answer.Error, fmt.Sprintf("Unknown method %s", in.Action))
+		logger.log(QK_LOG_LEVEL_WARNING, "Unknown method "+in.Action)
 		code = 400
 	}
 	jsonResponse(w, answer, code)
@@ -99,6 +104,7 @@ func putJson(q qs.ICommonQueue, in postJson) answerJson {
 	ans := answerJson{}
 	if len(in.Msgs) < 1 {
 		ans.Error = append(ans.Error, "No messages")
+		logger.log(QK_LOG_LEVEL_INFO, "putJson: No messages")
 		return ans
 	}
 	for _, v := range in.Msgs {
@@ -113,6 +119,7 @@ func getJson(q qs.ICommonQueue, in postJson) answerJson {
 	ans := answerJson{}
 	if in.Cnt < 1 {
 		ans.Error = append(ans.Error, "No messages")
+		logger.log(QK_LOG_LEVEL_INFO, "getJson: No messages")
 		return ans
 	}
 	for i := 0; i < in.Cnt; i++ {
