@@ -13,28 +13,28 @@ func NewQueueManager() *QueueManager {
 	return &QueueManager{queues: make(map[string]ICommonQueue)}
 }
 
-func (this *QueueManager) CreateQueue(name string, flags QueueFlags) ICommonQueue {
+func (qm *QueueManager) CreateQueue(name string, flags QueueFlags) ICommonQueue {
 	if flags.isDeduplicated() {
-		this.queues[name] = NewDedupQueue(flags)
+		qm.queues[name] = NewDedupQueue(flags)
 	} else {
-		this.queues[name] = NewQueue(flags)
+		qm.queues[name] = NewQueue(flags)
 	}
-	return this.queues[name]
+	return qm.queues[name]
 }
 
-func (this *QueueManager) GetQueue(name string) (ICommonQueue, error) {
-	q, ok := this.queues[name]
+func (qm *QueueManager) GetQueue(name string) (ICommonQueue, error) {
+	q, ok := qm.queues[name]
 	if ok {
 		return q, nil
 	}
 	return nil, NewError("No Queue "+name, ErrNoQueue)
 }
 
-func (this *QueueManager) String() string {
+func (qm *QueueManager) String() string {
 	qStr := "Queues: "
 	var keys []string
-	for k := range this.queues {
-		q := this.queues[k]
+	for k := range qm.queues {
+		q := qm.queues[k]
 		item := k + fmt.Sprintf("(items: %d)", q.Count())
 		keys = append(keys, item)
 	}

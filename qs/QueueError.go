@@ -12,12 +12,12 @@ type QueueError struct {
 	code int
 }
 
-func (this QueueError) Error() string {
-	return this.msg
+func (qe QueueError) Error() string {
+	return qe.msg
 }
 
-func (this QueueError) Code() int {
-	return this.code
+func (qe QueueError) Code() int {
+	return qe.code
 }
 
 func NewError(m string, c int) QueueError {

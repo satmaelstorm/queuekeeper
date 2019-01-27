@@ -20,59 +20,59 @@ func NewQueue(fl QueueFlags) *Queue {
 	return &Queue{head: nil, tail: nil, cnt: 0, flags: fl}
 }
 
-func (this *Queue) Count() int {
-	return this.cnt
+func (q *Queue) Count() int {
+	return q.cnt
 }
 
 /**
  * Put message to queue
  */
-func (this *Queue) Put(qi *QueueItem) (*QueueItem, error) {
-	this.mu.Lock()
-	defer this.mu.Unlock()
-	return this.put(qi)
+func (q *Queue) Put(qi *QueueItem) (*QueueItem, error) {
+	q.mu.Lock()
+	defer q.mu.Unlock()
+	return q.put(qi)
 }
 
 /**
  * Get message from queue
  */
-func (this *Queue) Get() (*QueueItem, error) {
-	this.mu.Lock()
-	defer this.mu.Unlock()
-	return this.get()
+func (q *Queue) Get() (*QueueItem, error) {
+	q.mu.Lock()
+	defer q.mu.Unlock()
+	return q.get()
 }
 
-func (this *Queue) put(qi *QueueItem) (*QueueItem, error) {
-	if nil == this.head {
-		this.head = qi
+func (q *Queue) put(qi *QueueItem) (*QueueItem, error) {
+	if nil == q.head {
+		q.head = qi
 	}
 
-	if nil != this.tail {
-		this.tail.next = qi
+	if nil != q.tail {
+		q.tail.next = qi
 	}
 
-	this.tail = qi
+	q.tail = qi
 
-	this.cnt += 1
+	q.cnt += 1
 
 	return qi, nil
 }
 
-func (this *Queue) get() (*QueueItem, error) {
-	if nil == this.head {
+func (q *Queue) get() (*QueueItem, error) {
+	if nil == q.head {
 		return nil, NewError("head is nil", ErrQueueEmpty)
 	}
 
-	if this.flags.isDelayedDelivery() {
-		return findMessageCanDelivery(this)
+	if q.flags.isDelayedDelivery() {
+		return findMessageCanDelivery(q)
 	}
 
-	if 1 == this.cnt {
-		this.tail = nil
+	if 1 == q.cnt {
+		q.tail = nil
 	}
-	qi := this.head
-	this.head = qi.next
-	this.cnt -= 1
+	qi := q.head
+	q.head = qi.next
+	q.cnt -= 1
 	return qi, nil
 }
 

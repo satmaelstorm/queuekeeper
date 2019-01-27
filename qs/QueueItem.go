@@ -18,14 +18,14 @@ func NewQueueItem(msg string, d int64) *QueueItem {
 	return qi
 }
 
-func (this QueueItem) String() string {
-	return this.message
+func (qi QueueItem) String() string {
+	return qi.message
 }
 
-func (this QueueItem) Next() *QueueItem {
-	return this.next
+func (qi QueueItem) Next() *QueueItem {
+	return qi.next
 }
 
-func (this QueueItem) LastAccess() int64 {
-	return this.lastAccess
+func (qi QueueItem) LastAccess() int64 {
+	return qi.lastAccess
 }

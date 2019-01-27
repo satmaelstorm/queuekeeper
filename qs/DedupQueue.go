@@ -14,29 +14,29 @@ func NewDedupQueue(fl QueueFlags) *DedupQueue {
 		items: make(map[string]*QueueItem)}
 }
 
-func (this *DedupQueue) Put(qi *QueueItem) (*QueueItem, error) {
-	this.mu.Lock()
-	defer this.mu.Unlock()
-	return this.put(qi)
+func (dq *DedupQueue) Put(qi *QueueItem) (*QueueItem, error) {
+	dq.mu.Lock()
+	defer dq.mu.Unlock()
+	return dq.put(qi)
 }
 
-func (this *DedupQueue) put(pqi *QueueItem) (*QueueItem, error) {
-	qi, ok := this.items[pqi.message]
+func (dq *DedupQueue) put(pqi *QueueItem) (*QueueItem, error) {
+	qi, ok := dq.items[pqi.message]
 	if ok {
 		qi.lastAccess = getTimeForLastAccess()
 		qi.delay = pqi.delay
-		this.cnt += 1
+		dq.cnt += 1
 		return qi, nil
 	}
 
-	qi, err := this.Queue.put(pqi)
+	qi, err := dq.Queue.put(pqi)
 
 	if err != nil {
 		return nil, err
 	}
 
-	this.items[qi.message] = qi
-	this.cnt += 1
+	dq.items[qi.message] = qi
+	dq.cnt += 1
 
 	return qi, nil
 }

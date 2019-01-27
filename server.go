@@ -18,7 +18,7 @@ import (
 )
 
 var qm *qs.QueueManager
-var conf configuartion
+var conf configuration
 var logger queueKeeperLogger
 var adminReloadQueueConfigMutex sync.Mutex
 

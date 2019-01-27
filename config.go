@@ -21,7 +21,7 @@ type logConfiguration struct {
 	parsedEngine url.URL
 }
 
-type configuartion struct {
+type configuration struct {
 	queuePath  string
 	maxWorkers int
 	httpPort   int
@@ -29,23 +29,23 @@ type configuartion struct {
 	from       string
 }
 
-func (this configuartion) String() string {
+func (c configuration) String() string {
 	return fmt.Sprintf(
 		"queuePath: %s, maxWorkers: %d, httpPort: %d, log level: %d, log engine: %s, load from: %s",
-		this.queuePath, this.maxWorkers, this.httpPort, this.logConf.level, this.logConf.engine, this.from)
+		c.queuePath, c.maxWorkers, c.httpPort, c.logConf.level, c.logConf.engine, c.from)
 }
 
 func readEnv(name string) string {
 	return os.Getenv(ENV_PREFIX + name)
 }
 
-func readGlobalConfig() configuartion {
+func readGlobalConfig() configuration {
 	path := readEnv("CONFIG_PATH")
 	if "" == path {
 		path = "qk.config.yml"
 	}
 
-	conf := configuartion{queuePath: "./", maxWorkers: 5, httpPort: 8088, from: "default"}
+	conf := configuration{queuePath: "./", maxWorkers: 5, httpPort: 8088, from: "default"}
 
 	if "ENV" == path {
 		return readGlobalConfigFromEnv(conf)
@@ -83,7 +83,7 @@ func readGlobalConfig() configuartion {
 	return conf
 }
 
-func readGlobalConfigFromEnv(conf configuartion) configuartion {
+func readGlobalConfigFromEnv(conf configuration) configuration {
 	if qp := readEnv("QUEUE_CONFIG_PATH"); "" != qp {
 		conf.queuePath = qp
 	}
@@ -115,7 +115,7 @@ func readGlobalConfigFromEnv(conf configuartion) configuartion {
 	return conf
 }
 
-func readQueuesConfigs(qm *qs.QueueManager, conf configuartion) *qs.QueueManager {
+func readQueuesConfigs(qm *qs.QueueManager, conf configuration) *qs.QueueManager {
 	files, err := ioutil.ReadDir(conf.queuePath)
 	if err != nil {
 		log.Fatal(err)

@@ -81,7 +81,7 @@ func initLogger(conf logConfiguration) queueKeeperLogger {
 	return logger
 }
 
-func (this queueKeeperLogger) log(level int, message string) {
+func (qkl queueKeeperLogger) log(level int, message string) {
 	message = fmt.Sprintf("[%s] %s", parseLogLevelToString(level), message)
-	this.logger.Println(message)
+	qkl.logger.Println(message)
 }

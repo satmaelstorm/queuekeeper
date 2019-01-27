@@ -21,54 +21,54 @@ func NewQueueFlags() QueueFlags {
 	return flags
 }
 
-func (this *QueueFlags) isDurable() bool {
-	return this.durable
+func (qf *QueueFlags) isDurable() bool {
+	return qf.durable
 }
 
-func (this *QueueFlags) isDeduplicated() bool {
-	return this.deduplicated
+func (qf *QueueFlags) isDeduplicated() bool {
+	return qf.deduplicated
 }
 
-func (this *QueueFlags) isDelayedDelivery() bool {
-	return this.delayedDelivery > 0
+func (qf *QueueFlags) isDelayedDelivery() bool {
+	return qf.delayedDelivery > 0
 }
 
-func (this *QueueFlags) DelayedDelivery() int {
-	return this.delayedDelivery
+func (qf *QueueFlags) DelayedDelivery() int {
+	return qf.delayedDelivery
 }
 
-func (this *QueueFlags) isWithPriority() bool {
-	return this.withPriority
+func (qf *QueueFlags) isWithPriority() bool {
+	return qf.withPriority
 }
 
-func (this *QueueFlags) isStack() bool {
-	return this.stack
+func (qf *QueueFlags) isStack() bool {
+	return qf.stack
 }
 
 /**
  * Setters
  */
-func (this *QueueFlags) SetDurable(val bool) *QueueFlags {
-	this.durable = val
-	return this
+func (qf *QueueFlags) SetDurable(val bool) *QueueFlags {
+	qf.durable = val
+	return qf
 }
 
-func (this *QueueFlags) SetDeduplicated(val bool) *QueueFlags {
-	this.deduplicated = val
-	return this
+func (qf *QueueFlags) SetDeduplicated(val bool) *QueueFlags {
+	qf.deduplicated = val
+	return qf
 }
 
-func (this *QueueFlags) SetDelayedDelivery(val int) *QueueFlags {
-	this.delayedDelivery = val
-	return this
+func (qf *QueueFlags) SetDelayedDelivery(val int) *QueueFlags {
+	qf.delayedDelivery = val
+	return qf
 }
 
-func (this *QueueFlags) SetWithPriority(val bool) *QueueFlags {
-	this.withPriority = val
-	return this
+func (qf *QueueFlags) SetWithPriority(val bool) *QueueFlags {
+	qf.withPriority = val
+	return qf
 }
 
-func (this *QueueFlags) SetStack(val bool) *QueueFlags {
-	this.stack = val
-	return this
+func (qf *QueueFlags) SetStack(val bool) *QueueFlags {
+	qf.stack = val
+	return qf
 }
