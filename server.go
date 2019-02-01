@@ -99,7 +99,10 @@ func adminReloadQueueConfigHandler(w http.ResponseWriter, req *http.Request, ps 
 func healthRoute(w http.ResponseWriter, req *http.Request, ps httprouter.Params) {
 	defer req.Body.Close()
 	logger.log(QK_LOG_LEVEL_INFO, "Read health info")
-	io.WriteString(w, health())
+	h := health()
+	if err := healthTemplateCompiled.Execute(w, h); nil != err {
+		logger.log(QK_LOG_LEVEL_ERROR, err.Error())
+	}
 }
 
 func main() {
