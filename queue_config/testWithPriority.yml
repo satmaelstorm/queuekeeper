@@ -1,0 +1,9 @@
+name: test3
+flags:
+  deduplication: false
+  delay_delivery: 0
+with_priority:
+  - queue: test
+    weight: 100
+  - queue: test2
+    weight: 1000

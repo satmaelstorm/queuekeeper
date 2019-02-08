@@ -14,7 +14,9 @@ func NewQueueManager() *QueueManager {
 }
 
 func (qm *QueueManager) CreateQueue(name string, flags QueueFlags) ICommonQueue {
-	if flags.isDeduplicated() {
+	if len(flags.getWithPriority()) > 0 {
+		qm.queues[name] = NewPriorityQueue(flags, qm)
+	}else if flags.isDeduplicated() {
 		qm.queues[name] = NewDedupQueue(flags)
 	} else {
 		qm.queues[name] = NewQueue(flags)

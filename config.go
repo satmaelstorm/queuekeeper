@@ -138,6 +138,7 @@ func readQueuesConfigs(qm *qs.QueueManager, conf configuration) *qs.QueueManager
 
 func processOneQueueConfig(fn string, conf *yaml.File, qm *qs.QueueManager) *qs.QueueManager {
 	var name string
+	logger.log(QK_LOG_LEVEL_TRACE, "Process queue file "+fn);
 	if strings.HasSuffix(fn, ".yml") {
 		name = strings.Replace(fn, ".yml", "", -1)
 	} else if strings.HasSuffix(fn, ".yaml") {
@@ -162,6 +163,27 @@ func processOneQueueConfig(fn string, conf *yaml.File, qm *qs.QueueManager) *qs.
 	delayDelivery, err := conf.GetInt("flags.delay_delivery")
 	if nil == err {
 		flags.SetDelayedDelivery(int(delayDelivery))
+	}
+
+
+	if  withPriority, err := conf.Count("with_priority"); nil == err && withPriority > 0 {
+		if wp, err := yaml.Child(conf.Root, "with_priority"); nil == err {
+			if  lst, ok := wp.(yaml.List); ok {
+				qfMap := make(map[string]int);
+				for _, queueInfo := range lst {
+					queueInfoMap := queueInfo.(yaml.Map)
+					queueName, ok := queueInfoMap["queue"].(yaml.Scalar)
+					queueWeight, ok2 := queueInfoMap["weight"].(yaml.Scalar)
+					if ok && ok2 {
+						if queueWeigthInt,err := strconv.ParseInt(queueWeight.String(), 10, 64); err == nil {
+							qfMap[queueName.String()] = int(queueWeigthInt)
+							logger.log(QK_LOG_LEVEL_DEBUG, fmt.Sprintf("To %s add queue %s weight %d", name, queueName.String(), int(queueWeigthInt)))
+						}
+					}
+				}
+				flags.SetWithPriority(qfMap)
+			}
+		}
 	}
 
 	processFlag(conf, "deduplication", flags.SetDeduplicated)

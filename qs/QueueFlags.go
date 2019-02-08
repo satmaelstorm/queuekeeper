@@ -7,7 +7,7 @@ type QueueFlags struct {
 	durable         bool
 	deduplicated    bool
 	delayedDelivery int
-	withPriority    bool
+	withPriority    map[string]int
 	stack           bool
 }
 
@@ -17,7 +17,7 @@ type QueueFlagsSetter func(bool) *QueueFlags
  * Getters
  */
 func NewQueueFlags() QueueFlags {
-	flags := QueueFlags{durable: false, deduplicated: false, delayedDelivery: 0, withPriority: false, stack: false}
+	flags := QueueFlags{durable: false, deduplicated: false, delayedDelivery: 0, withPriority: make(map[string]int), stack: false}
 	return flags
 }
 
@@ -37,7 +37,7 @@ func (qf *QueueFlags) DelayedDelivery() int {
 	return qf.delayedDelivery
 }
 
-func (qf *QueueFlags) isWithPriority() bool {
+func (qf *QueueFlags) getWithPriority() map[string]int {
 	return qf.withPriority
 }
 
@@ -63,7 +63,7 @@ func (qf *QueueFlags) SetDelayedDelivery(val int) *QueueFlags {
 	return qf
 }
 
-func (qf *QueueFlags) SetWithPriority(val bool) *QueueFlags {
+func (qf *QueueFlags) SetWithPriority(val map[string]int) *QueueFlags {
 	qf.withPriority = val
 	return qf
 }
