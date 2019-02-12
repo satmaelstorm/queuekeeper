@@ -1,5 +1,10 @@
 package qs
 
+import (
+	"math/rand"
+	"time"
+	)
+
 type PriorityQueue struct {
 	Queue
 	sum int
@@ -25,3 +30,15 @@ func NewPriorityQueue(fl QueueFlags, qm *QueueManager) *PriorityQueue{
 
 
 
+func (pq *PriorityQueue)Put(qi *QueueItem)(*QueueItem, error){
+	return nil, NewError("You can't put to this queue.", ErrCantPutToPriorityQueue)
+}
+
+func (pq PriorityQueue)Get()(*QueueItem, error){
+	curSum := 0
+	rnd := rand.New(rand.NewSource(time.Now().UnixNano()))
+	r := rnd.Intn(pq.sum)
+	for queueName, queueWeigth := range pq.flags.withPriority {
+		curSum += queueWeigth
+	}
+}
