@@ -53,4 +53,5 @@ func (pq PriorityQueue) queueDecision() string {
 			return queueName
 		}
 	}
+	return ""
 }
