@@ -35,10 +35,22 @@ func (pq *PriorityQueue)Put(qi *QueueItem)(*QueueItem, error){
 }
 
 func (pq PriorityQueue)Get()(*QueueItem, error){
+	queueName := pq.queueDecision()
+	queue, err := pq.queueManager.GetQueue(queueName)
+	if err == nil {
+		return queue.Get()
+	}
+	return nil, err
+}
+
+func (pq PriorityQueue) queueDecision() string {
 	curSum := 0
 	rnd := rand.New(rand.NewSource(time.Now().UnixNano()))
-	r := rnd.Intn(pq.sum)
-	for queueName, queueWeigth := range pq.flags.withPriority {
-		curSum += queueWeigth
+	r := rnd.Intn(pq.sum) + 1
+	for queueName, queueWeight := range pq.flags.withPriority {
+		curSum += queueWeight
+		if r <= curSum {
+			return queueName
+		}
 	}
 }
