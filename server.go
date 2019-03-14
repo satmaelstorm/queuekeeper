@@ -57,6 +57,7 @@ func main() {
 	router := route()
 
 	err := manners.ListenAndServe(":"+strconv.FormatInt(int64(conf.httpPort), 10), router)
+	
 	if err != nil {
 		logger.log(QK_LOG_LEVEL_CRITICAL, "ListenAndServe: "+err.Error())
 	}
