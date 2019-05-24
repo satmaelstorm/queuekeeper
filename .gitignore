@@ -1,3 +1,4 @@
 # Created by .ignore support plugin (hsz.mobi)
 go_build_queuekeeper
 .idea/
+bin/queuekeeper

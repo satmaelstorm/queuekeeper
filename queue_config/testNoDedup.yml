@@ -1,4 +1,0 @@
-name: test2
-flags:
-  deduplication: false
-  delay_delivery: 0
